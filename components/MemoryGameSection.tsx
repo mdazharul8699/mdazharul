@@ -2,36 +2,53 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// টাইপ এবং ইন্টারফেস
+interface Card {
+  id: number;
+  icon: string;
+}
+
+interface VendorFullscreenElement extends HTMLDivElement {
+  webkitRequestFullscreen?: () => Promise<void>;
+  msRequestFullscreen?: () => Promise<void>;
+}
+
 const ALL_ICONS = ["⚛️", "🚀", "⚡", "🛠️", "🎨", "📱", "🔥", "💎"];
 
 export default function MemoryGameSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [level, setLevel] = useState(1);
-  const [cards, setCards] = useState<any[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [flipped, setFlipped] = useState<number[]>([]);
   const [solved, setSolved] = useState<number[]>([]);
   const [disabled, setDisabled] = useState(false);
   const [moves, setMoves] = useState(0);
 
-  // --- Fullscreen Logic ---
+  // --- Fullscreen Logic (Fixed) ---
   const toggleFullScreen = (enable: boolean) => {
     if (enable) {
-      if (containerRef.current?.requestFullscreen) containerRef.current.requestFullscreen();
-      else if ((containerRef.current as any).webkitRequestFullscreen) (containerRef.current as any).webkitRequestFullscreen();
+      const elem = containerRef.current as VendorFullscreenElement;
+      if (elem) {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        }
+      }
     } else {
-      if (document.fullscreenElement) document.exitFullscreen();
+      if (typeof document !== 'undefined' && document.fullscreenElement) {
+        document.exitFullscreen();
+      }
     }
   };
 
-  // --- Level-wise Card Generator ---
   const initializeGame = useCallback((currentLevel: number) => {
-    // লেভেল অনুযায়ী কার্ড সংখ্যা নির্ধারণ (Level 1 = 4 cards, Level 2 = 8, Level 3 = 12, Level 4 = 16)
     const cardCount = Math.min(currentLevel * 4, 16);
     const iconsNeeded = ALL_ICONS.slice(0, cardCount / 2);
     const doubledIcons = [...iconsNeeded, ...iconsNeeded];
     
-    const shuffled = doubledIcons
+    const shuffled: Card[] = doubledIcons
       .sort(() => Math.random() - 0.5)
       .map((icon, index) => ({ id: index, icon }));
 
@@ -55,7 +72,7 @@ export default function MemoryGameSection() {
       setLevel(nextLvl);
       initializeGame(nextLvl);
     } else {
-      handleExit(); // সব লেভেল শেষ হলে এক্সিট
+      handleExit();
     }
   };
 
@@ -91,9 +108,7 @@ export default function MemoryGameSection() {
 
   return (
     <div ref={containerRef} className="w-full min-h-[500px] flex items-center justify-center bg-[#050505] font-sans selection:bg-none">
-      
       {!isPlaying ? (
-        /* --- START CARD --- */
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-12 bg-[#111] border-2 border-[#00d2ff] rounded-[3rem] text-center shadow-[0_0_50px_rgba(0,210,255,0.2)]">
           <div className="w-20 h-20 bg-[#00d2ff]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[#00d2ff]/30">
             <span className="text-4xl">🧠</span>
@@ -103,10 +118,7 @@ export default function MemoryGameSection() {
           <button onClick={handleStart} className="w-full py-5 bg-[#00d2ff] text-black font-black rounded-2xl hover:bg-white transition-all uppercase tracking-[2px]">Enter Fullscreen</button>
         </motion.div>
       ) : (
-        /* --- GAME UI --- */
         <div className="w-full h-screen bg-[#050508] p-6 flex flex-col items-center justify-center relative overflow-hidden">
-          
-          {/* Header */}
           <div className="absolute top-0 w-full p-8 flex justify-between items-center z-50">
             <div className="space-y-1">
               <p className="text-[#00d2ff] text-xs font-black tracking-[4px] uppercase">System Status</p>
@@ -115,7 +127,6 @@ export default function MemoryGameSection() {
             <button onClick={handleExit} className="px-8 py-3 bg-red-600/10 border border-red-600/50 text-red-500 font-black rounded-xl hover:bg-red-600 hover:text-white transition-all uppercase text-xs tracking-widest">Abort Mission</button>
           </div>
 
-          {/* Dynamic Grid Based on Level */}
           <div className={`grid gap-4 w-full max-w-2xl px-4 ${level === 1 ? 'grid-cols-2 max-w-xs' : 'grid-cols-4'}`}>
             {cards.map((card) => {
               const isFlipped = flipped.includes(card.id) || solved.includes(card.id);
@@ -127,10 +138,17 @@ export default function MemoryGameSection() {
                     <motion.div animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.4 }} className="w-full h-full relative" style={{ transformStyle: 'preserve-3d' }}>
                       <div className="absolute inset-0 bg-[#0f0f0f] border-2 border-white/10 rounded-2xl flex items-center justify-center shadow-2xl" style={{ backfaceVisibility: 'hidden' }}>
                         <div className="w-8 h-8 rounded-full border-2 border-white/5 flex items-center justify-center">
-                           <div className="w-1.5 h-1.5 bg-[#00d2ff] rounded-full animate-pulse"></div>
+                            <div className="w-1.5 h-1.5 bg-[#00d2ff] rounded-full animate-pulse"></div>
                         </div>
                       </div>
-                      <div className={`absolute inset-0 rounded-2xl flex items-center justify-center rotate-y-180 ${isMatched ? 'bg-[#00d2ff] border-white shadow-[0_0_40px_rgba(0,210,255,0.6)]' : 'bg-[#1a1a1a] border-[#00d2ff]'}`} style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', border: '3px solid' }}>
+                      <div 
+                        className={`absolute inset-0 rounded-2xl flex items-center justify-center ${isMatched ? 'bg-[#00d2ff] border-white shadow-[0_0_40px_rgba(0,210,255,0.6)]' : 'bg-[#1a1a1a] border-[#00d2ff]'}`} 
+                        style={{ 
+                          backfaceVisibility: 'hidden', 
+                          transform: 'rotateY(180deg)', 
+                          border: '3px solid' 
+                        }}
+                      >
                         <span className={`text-4xl md:text-5xl ${isMatched ? 'scale-110' : ''} transition-transform`}>{card.icon}</span>
                       </div>
                     </motion.div>
@@ -140,7 +158,6 @@ export default function MemoryGameSection() {
             })}
           </div>
 
-          {/* Level Complete Modal */}
           <AnimatePresence>
             {solved.length === cards.length && cards.length > 0 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center">

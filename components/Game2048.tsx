@@ -4,14 +4,18 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const GRID_SIZE = 4;
 
-export default function Game2048() {
-  const [grid, setGrid] = useState<number[][]>([]);
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
+// টাইপ ডিফাইন করা
+type Grid = number[][];
+type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 
-  // নতুন টাইল যোগ করা
-  const addTile = (currentGrid: number[][]) => {
-    const emptyCells = [];
+export default function Game2048() {
+  const [grid, setGrid] = useState<Grid>([]);
+  const [score, setScore] = useState<number>(0);
+  const [gameOver, setGameOver] = useState<boolean>(false);
+
+  // নতুন টাইল যোগ করা (currentGrid কে টাইপ সেফ করা হয়েছে)
+  const addTile = (currentGrid: Grid): void => {
+    const emptyCells: { r: number; c: number }[] = [];
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         if (currentGrid[r][c] === 0) emptyCells.push({ r, c });
@@ -24,7 +28,7 @@ export default function Game2048() {
   };
 
   const initGame = useCallback(() => {
-    let newGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+    const newGrid: Grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
     addTile(newGrid);
     addTile(newGrid);
     setGrid(newGrid);
@@ -32,22 +36,33 @@ export default function Game2048() {
     setGameOver(false);
   }, []);
 
-  useEffect(() => { initGame(); }, [initGame]);
+  // প্রথমবার গেম লোড করার জন্য
+  useEffect(() => { 
+    initGame(); 
+  }, [initGame]);
 
-  // মুভমেন্ট লজিক (সংক্ষেপে)
-  const move = (direction: "UP" | "DOWN" | "LEFT" | "RIGHT") => {
-    if (gameOver) return;
-    let newGrid = JSON.parse(JSON.stringify(grid));
+  // মুভমেন্ট লজিক
+  const move = (direction: Direction): void => {
+    if (gameOver || grid.length === 0) return;
+    
+    let newGrid: Grid = JSON.parse(JSON.stringify(grid));
     let moved = false;
 
-    const rotate = (matrix: number[][]) => matrix[0].map((_, i) => matrix.map(row => row[i]).reverse());
+    const rotate = (matrix: Grid): Grid => {
+      return matrix[0].map((_, i) => matrix.map(row => row[i]).reverse());
+    };
     
-    // সব মুভমেন্টকে LEFT-এ কনভার্ট করে ক্যালকুলেট করা
-    let rotationCount = { LEFT: 0, UP: 3, RIGHT: 2, DOWN: 1 }[direction];
-    for (let i = 0; i < rotationCount; i++) newGrid = rotate(newGrid);
+    const rotationCount: Record<Direction, number> = { LEFT: 0, UP: 3, RIGHT: 2, DOWN: 1 };
+    const count = rotationCount[direction];
+
+    for (let i = 0; i < count; i++) {
+      newGrid = rotate(newGrid);
+    }
 
     for (let r = 0; r < GRID_SIZE; r++) {
-      let row = newGrid[r].filter((v: number) => v !== 0);
+      // ফিক্স: এখানে (newGrid[r] as number[]) দিয়ে টাইপ নিশ্চিত করা হয়েছে
+      const row = (newGrid[r] as number[]).filter((v: number) => v !== 0);
+      
       for (let i = 0; i < row.length - 1; i++) {
         if (row[i] === row[i + 1]) {
           row[i] *= 2;
@@ -57,21 +72,25 @@ export default function Game2048() {
         }
       }
       while (row.length < GRID_SIZE) row.push(0);
-      if (JSON.stringify(newGrid[r]) !== JSON.stringify(row)) moved = true;
+      
+      if (JSON.stringify(newGrid[r]) !== JSON.stringify(row)) {
+        moved = true;
+      }
       newGrid[r] = row;
     }
 
-    for (let i = 0; i < (4 - rotationCount) % 4; i++) newGrid = rotate(newGrid);
+    for (let i = 0; i < (4 - count) % 4; i++) {
+      newGrid = rotate(newGrid);
+    }
 
     if (moved) {
       addTile(newGrid);
       setGrid(newGrid);
-      // চেক গেম ওভার
       if (!canMove(newGrid)) setGameOver(true);
     }
   };
 
-  const canMove = (g: number[][]) => {
+  const canMove = (g: Grid): boolean => {
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         if (g[r][c] === 0) return true;
@@ -84,17 +103,20 @@ export default function Game2048() {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowUp") move("UP");
-      if (e.key === "ArrowDown") move("DOWN");
-      if (e.key === "ArrowLeft") move("LEFT");
-      if (e.key === "ArrowRight") move("RIGHT");
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+        if (e.key === "ArrowUp") move("UP");
+        if (e.key === "ArrowDown") move("DOWN");
+        if (e.key === "ArrowLeft") move("LEFT");
+        if (e.key === "ArrowRight") move("RIGHT");
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [grid, gameOver]);
 
-  const getTileColor = (val: number) => {
-    const colors: any = {
+  const getTileColor = (val: number): string => {
+    const colors: Record<number, string> = {
       2: "bg-gray-800 text-white",
       4: "bg-gray-700 text-white",
       8: "bg-orange-500 text-white shadow-[0_0_15px_#f97316]",
@@ -110,10 +132,14 @@ export default function Game2048() {
     return colors[val] || "bg-black text-white border border-white/10";
   };
 
+  if (grid.length === 0) return null;
+
   return (
     <div className="w-full h-full bg-[#050510] flex flex-col items-center justify-center p-4 font-sans">
       <div className="mb-8 text-center">
-        <h2 className="text-5xl font-black italic text-white mb-2 uppercase tracking-tighter">Cyber <span className="text-yellow-400">2048</span></h2>
+        <h2 className="text-5xl font-black italic text-white mb-2 uppercase tracking-tighter">
+          Cyber <span className="text-yellow-400">2048</span>
+        </h2>
         <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-2xl">
           <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Current Score</p>
           <p className="text-3xl font-black text-white">{score}</p>
@@ -136,15 +162,27 @@ export default function Game2048() {
         </div>
       </div>
 
-      <p className="mt-8 text-gray-500 text-[10px] font-bold uppercase tracking-[4px] animate-pulse">Use Arrow Keys to Merge Tiles</p>
+      <p className="mt-8 text-gray-500 text-[10px] font-bold uppercase tracking-[4px] animate-pulse">
+        Use Arrow Keys to Merge Tiles
+      </p>
 
       <AnimatePresence>
         {gameOver && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/90 z-[100] flex items-center justify-center backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/90 z-[100] flex items-center justify-center backdrop-blur-sm"
+          >
             <div className="text-center">
               <h3 className="text-6xl font-black text-white italic mb-4 uppercase">Grid Full</h3>
               <p className="text-yellow-400 text-xl font-bold mb-10 tracking-widest uppercase">Score: {score}</p>
-              <button onClick={initGame} className="px-12 py-4 bg-yellow-400 text-black font-black rounded-xl uppercase tracking-widest hover:bg-white transition-all">Reboot</button>
+              <button 
+                onClick={initGame} 
+                className="px-12 py-4 bg-yellow-400 text-black font-black rounded-xl uppercase tracking-widest hover:bg-white transition-all"
+              >
+                Reboot
+              </button>
             </div>
           </motion.div>
         )}

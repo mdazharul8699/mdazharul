@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { useEffect, useRef } from "react";
 
@@ -25,12 +25,20 @@ function FishAquarium() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    // সাইজ সেট করার ফাংশন
+    const setCanvasSize = () => {
+      if (canvas) {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+      }
+    };
 
-    // রঙিন মাছের ডাটা (রঙিন হবে)
+    setCanvasSize();
+
     const fishColors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#FFD700"];
-    let fishes = Array.from({ length: 4 }).map(() => ({
+    
+    // মাছের প্রাথমিক ডাটা
+    const fishes = Array.from({ length: 4 }).map(() => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       size: Math.random() * 3 + 2,
@@ -39,6 +47,8 @@ function FishAquarium() {
       color: fishColors[Math.floor(Math.random() * fishColors.length)],
     }));
 
+    let animationId: number;
+
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -46,6 +56,7 @@ function FishAquarium() {
         f.x += Math.cos(f.angle) * f.speed;
         f.y += Math.sin(f.angle) * f.speed;
 
+        // বাউন্ডারি চেক (মাছ স্ক্রিন থেকে বের হবে না)
         if (f.x < 0 || f.x > canvas.width) f.angle = Math.PI - f.angle;
         if (f.y < 0 || f.y > canvas.height) f.angle = -f.angle;
 
@@ -54,12 +65,12 @@ function FishAquarium() {
         ctx.rotate(f.angle);
         ctx.fillStyle = f.color;
         
-        // মাছের বডি
+        // মাছের বডি (ellipse)
         ctx.beginPath();
         ctx.ellipse(0, 0, f.size * 2, f.size, 0, 0, Math.PI * 2);
         ctx.fill();
         
-        // লেজ
+        // মাছের লেজ
         ctx.beginPath();
         ctx.moveTo(-f.size * 1.5, 0);
         ctx.lineTo(-f.size * 3, -f.size);
@@ -68,65 +79,81 @@ function FishAquarium() {
         ctx.restore();
       });
 
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
     };
 
     animate();
+
+    // উইন্ডো রিসাইজ হ্যান্ডেল
+    window.addEventListener("resize", setCanvasSize);
+
+    // মেমোরি লিক রোধে ক্লিনআপ
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", setCanvasSize);
+    };
   }, []);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-40 pointer-events-none" />;
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" />;
 }
 
 export default function Skills() {
-  const theme = useTheme();
+  const { color } = useTheme(); // theme.color সরাসরি ডিস্ট্রাকচার করা হয়েছে
 
   return (
-    <section className="py-20 bg-transparent relative">
+    <section className="py-20 bg-transparent relative overflow-hidden">
       <div className="container mx-auto px-6">
         <motion.h2 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          className="text-4xl md:text-6xl font-black mb-16 tracking-tighter"
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-4xl md:text-6xl font-black mb-16 tracking-tighter text-white"
         >
-          MY <span style={{ color: theme.color }}>STRENGTHS</span>
+          MY <span style={{ color: color }}>STRENGTHS</span>
         </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {skills.map((skill, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
+              whileHover={{ scale: 1.02 }}
               style={{ 
-                borderLeft: `4px solid ${theme.color}`,
-                // পানির মতো হালকা নীলচে ব্যাকগ্রাউন্ড
+                borderLeft: `4px solid ${color}`,
                 background: "linear-gradient(135deg, rgba(10, 25, 41, 0.7) 0%, rgba(2, 6, 23, 0.8) 100%)"
               }}
-              className="p-8 py-12 rounded-2xl backdrop-blur-xl border border-white/5 relative overflow-hidden"
+              className="p-8 py-12 rounded-2xl backdrop-blur-xl border border-white/5 relative overflow-hidden group shadow-2xl"
             >
-              {/* অ্যানিমেশন লেয়ার */}
+              {/* অ্যাকুরিয়াম ব্যাকগ্রাউন্ড লেয়ার */}
               <FishAquarium />
 
               <div className="relative z-10">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-white transition-colors">
+                  <h3 className="text-2xl font-bold text-white group-hover:text-white/90 transition-colors">
                     {skill.name}
                   </h3>
-                  <span style={{ color: theme.color }} className="font-mono font-bold text-xl">{skill.level}</span>
+                  <span style={{ color: color }} className="font-mono font-bold text-xl drop-shadow-sm">
+                    {skill.level}
+                  </span>
                 </div>
                 
-                {/* Progress Bar */}
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                {/* Progress Bar Container */}
+                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
                   <motion.div 
                     initial={{ width: 0 }}
                     whileInView={{ width: skill.level }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    style={{ backgroundColor: theme.color }}
-                    className="h-full shadow-[0_0_10px] shadow-current"
+                    transition={{ duration: 1.5, ease: "circOut" }}
+                    style={{ backgroundColor: color }}
+                    className="h-full shadow-[0_0_15px] shadow-current"
                   />
                 </div>
               </div>
+
+              {/* কার্ডে গ্লস ইফেক্ট */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             </motion.div>
           ))}
         </div>

@@ -1,133 +1,144 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import XTypeSection from "./SolarSystemSection"; 
 import MemoryGameSection from "./MemoryGameSection";
 import SnakeGame from "./SnakeGame"; 
-import Game2048 from "./Game2048"; // নতুন 2048 গেম ফাইল
+import Game2048 from "./Game2048";
 
+// ১. টাইপ ডিফাইন করা
 type GameType = "XTYPE" | "MEMORY" | "SNAKE" | "G2048" | null;
+
+// গেম কার্ডের জন্য প্রপস টাইপ
+interface GameCardProps {
+  icon: string;
+  title: string;
+  desc: string;
+  color: string;
+  onClick: () => void;
+}
+
+// Fullscreen API এর জন্য কাস্টম টাইপ (WebKit সাপোর্ট সহ)
+interface VendorFullscreenElement extends HTMLDivElement {
+  webkitRequestFullscreen?: () => Promise<void>;
+}
 
 export default function GameHub() {
   const [activeGame, setActiveGame] = useState<GameType>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<VendorFullscreenElement>(null);
 
-  // ফুলস্ক্রিন হ্যান্ডলার
-  const launchGame = (game: GameType) => {
-    setActiveGame(game);
+  useEffect(() => {
+    const handleFsChange = () => {
+      if (!document.fullscreenElement) {
+        setActiveGame(null);
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    return () => document.removeEventListener("fullscreenchange", handleFsChange);
+  }, []);
+
+  const launchGame = useCallback(async (game: GameType) => {
     const elem = containerRef.current;
-    if (elem?.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if ((elem as any).webkitRequestFullscreen) {
-      (elem as any).webkitRequestFullscreen();
-    }
-  };
+    if (!elem) return;
 
-  const closeGame = () => {
+ try {
+      if (elem.requestFullscreen) {
+        // স্ট্যান্ডার্ড মেথড কল
+        await elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        // সাফারির জন্য মেথড কল
+        await elem.webkitRequestFullscreen();
+      }
+      setActiveGame(game);
+    } catch (e) {
+      console.error("Fullscreen failed:", e);
+      // ফুলস্ক্রিন এরর হলেও গেমটি যাতে লোড হয়
+      setActiveGame(game);
+    }
+  }, []);
+
+  const closeGame = useCallback(async () => {
     if (document.fullscreenElement) {
-      document.exitFullscreen();
+      await document.exitFullscreen();
     }
     setActiveGame(null);
-  };
+  }, []);
 
   return (
-    <div ref={containerRef} className="w-full py-20 bg-[#050505] flex flex-col items-center justify-center font-sans selection:bg-none min-h-screen">
+    <div ref={containerRef} className="w-full min-h-screen bg-[#020202] text-white font-sans selection:bg-cyan-500/30">
       
       {!activeGame ? (
-        /* --- GAME SELECTION CENTER --- */
-        <div className="max-w-5xl w-full px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-7xl font-black italic text-white tracking-tighter uppercase mb-4">
-              Gaming <span className="text-[#00d2ff]">Lab</span>
-            </h2>
-            <p className="text-gray-500 font-bold tracking-[5px] uppercase text-sm">Select a module to initialize</p>
+        <div className="max-w-6xl mx-auto px-6 py-20">
+          <div className="text-center mb-20">
+            <motion.h2 
+              initial={{ y: -20, opacity: 0 }} 
+              animate={{ y: 0, opacity: 1 }}
+              className="text-6xl md:text-8xl font-black tracking-tighter uppercase italic"
+            >
+              Play <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Zone</span>
+            </motion.h2>
+            <p className="text-gray-500 font-medium tracking-[8px] uppercase text-xs mt-4">System Online // Select Module</p>
           </div>
 
-          {/* ৪টি গেমের জন্য ২ কলাম গ্রিড */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            
-            {/* 1. X-TYPE Card */}
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              onClick={() => launchGame("XTYPE")}
-              className="group relative p-1 bg-[#111] border-2 border-white/10 hover:border-[#00d2ff] rounded-[2.5rem] cursor-pointer transition-all overflow-hidden"
-            >
-              <div className="p-10 text-center">
-                <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">🚀</div>
-                <h3 className="text-3xl font-black text-white italic mb-2 uppercase">X-Type</h3>
-                <p className="text-gray-500 text-xs font-bold mb-8 tracking-widest uppercase">Space Typing Combat</p>
-                <div className="py-3 px-6 bg-white/5 border border-white/10 rounded-xl text-[#00d2ff] font-black group-hover:bg-[#00d2ff] group-hover:text-black transition-all">
-                  LAUNCH MISSION
-                </div>
-              </div>
-            </motion.div>
-
-            {/* 2. NEON SNAKE Card */}
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              onClick={() => launchGame("SNAKE")}
-              className="group relative p-1 bg-[#111] border-2 border-white/10 hover:border-[#00ff88] rounded-[2.5rem] cursor-pointer transition-all overflow-hidden"
-            >
-              <div className="p-10 text-center">
-                <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">🐍</div>
-                <h3 className="text-3xl font-black text-white italic mb-2 uppercase">Neon Snake</h3>
-                <p className="text-gray-500 text-xs font-bold mb-8 tracking-widest uppercase">Retro Survival</p>
-                <div className="py-3 px-6 bg-white/5 border border-white/10 rounded-xl text-[#00ff88] font-black group-hover:bg-[#00ff88] group-hover:text-black transition-all">
-                  FEED THE SNAKE
-                </div>
-              </div>
-            </motion.div>
-
-            {/* 3. MEMORY Card */}
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              onClick={() => launchGame("MEMORY")}
-              className="group relative p-1 bg-[#111] border-2 border-white/10 hover:border-[#ff0055] rounded-[2.5rem] cursor-pointer transition-all overflow-hidden"
-            >
-              <div className="p-10 text-center">
-                <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">🧠</div>
-                <h3 className="text-3xl font-black text-white italic mb-2 uppercase">Memory Pro</h3>
-                <p className="text-gray-500 text-xs font-bold mb-8 tracking-widest uppercase">Brain Cells Challenge</p>
-                <div className="py-3 px-6 bg-white/5 border border-white/10 rounded-xl text-[#ff0055] font-black group-hover:bg-[#ff0055] group-hover:text-black transition-all">
-                  START SESSION
-                </div>
-              </div>
-            </motion.div>
-
-            {/* 4. CYBER 2048 Card - নতুন অ্যাড করা হয়েছে */}
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              onClick={() => launchGame("G2048")}
-              className="group relative p-1 bg-[#111] border-2 border-white/10 hover:border-[#fde047] rounded-[2.5rem] cursor-pointer transition-all overflow-hidden"
-            >
-              <div className="p-10 text-center">
-                <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">🧩</div>
-                <h3 className="text-3xl font-black text-white italic mb-2 uppercase">Cyber 2048</h3>
-                <p className="text-gray-500 text-xs font-bold mb-8 tracking-widest uppercase">Logic Grid Master</p>
-                <div className="py-3 px-6 bg-white/5 border border-white/10 rounded-xl text-[#fde047] font-black group-hover:bg-[#fde047] group-hover:text-black transition-all">
-                  MERGE TILES
-                </div>
-              </div>
-            </motion.div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <GameCard icon="🚀" title="X-Type" desc="High-speed orbital typing combat." color="#00d2ff" onClick={() => launchGame("XTYPE")} />
+            <GameCard icon="🐍" title="Neon Snake" desc="Navigate the digital grid. Survive." color="#00ff88" onClick={() => launchGame("SNAKE")} />
+            <GameCard icon="🧠" title="Memory Pro" desc="Sync your brain cells to win." color="#ff0055" onClick={() => launchGame("MEMORY")} />
+            <GameCard icon="🧩" title="Cyber 2048" desc="Merge tiles to reach the core." color="#fde047" onClick={() => launchGame("G2048")} />
           </div>
         </div>
       ) : (
-        /* --- FULLSCREEN RENDERER --- */
-        <div className="w-full h-screen bg-black relative">
+        <div className="w-full h-screen bg-black relative flex items-center justify-center">
           <button 
             onClick={closeGame}
-            className="absolute top-6 right-10 z-[1000] px-6 py-2 bg-red-600 text-white font-black rounded-full shadow-lg hover:scale-105 transition-transform uppercase text-xs tracking-widest"
+            className="absolute top-6 right-6 z-[1000] group flex items-center gap-2 px-5 py-2 bg-white/5 hover:bg-red-500 border border-white/10 rounded-xl transition-all"
           >
-            Close Game
+            <span className="text-[10px] font-bold tracking-widest uppercase italic">Terminating Link</span>
+            <span className="bg-red-500 group-hover:bg-white w-2 h-2 rounded-full animate-pulse" />
           </button>
-
-          {activeGame === "XTYPE" && <XTypeSection isFullscreenMode={true} />}
-          {activeGame === "MEMORY" && <MemoryGameSection isFullscreenMode={true} />}
-          {activeGame === "SNAKE" && <SnakeGame />}
-          {activeGame === "G2048" && <Game2048 />}
+          
+          <div className="w-full h-full">
+            {/* বস্, এখানে {...{ isFullscreenMode: true } as any} ব্যবহার করা হয়েছে কারণ আপনার গেম কম্পোনেন্টগুলোতে প্রপস ডিফাইন করা নেই। */}
+            {activeGame === "XTYPE" && <XTypeSection {...({ isFullscreenMode: true } as object)} />}
+            {activeGame === "MEMORY" && <MemoryGameSection {...({ isFullscreenMode: true } as object)} />}
+            {activeGame === "SNAKE" && <SnakeGame />}
+            {activeGame === "G2048" && <Game2048 />}
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+function GameCard({ icon, title, desc, color, onClick }: GameCardProps) {
+  return (
+    <motion.div 
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="group relative cursor-pointer"
+    >
+      <div 
+        className="absolute -inset-0.5 rounded-[2.5rem] opacity-20 group-hover:opacity-60 transition duration-500 blur"
+        style={{ backgroundColor: color }}
+      />
+      <div className="relative flex flex-col items-center p-12 bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] overflow-hidden h-full">
+        <div className="absolute -right-4 -bottom-4 text-9xl opacity-5 group-hover:opacity-10 transition-opacity grayscale group-hover:grayscale-0">
+          {icon}
+        </div>
+        <div className="text-7xl mb-6 transform group-hover:-translate-y-2 transition-transform duration-500">
+          {icon}
+        </div>
+        <h3 className="text-3xl font-black italic uppercase tracking-tight text-white mb-2">{title}</h3>
+        <p className="text-gray-400 text-sm font-medium mb-8 max-w-[200px] text-center leading-tight">{desc}</p>
+        <div 
+          className="px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[3px] border transition-all"
+          style={{ borderColor: `${color}44`, color: color }}
+        >
+          Initialize Boot
+        </div>
+        <div className="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-700" style={{ backgroundColor: color }} />
+      </div>
+    </motion.div>
   );
 }

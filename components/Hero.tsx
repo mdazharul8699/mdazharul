@@ -40,7 +40,7 @@ export default function Hero() {
           animate={{ opacity: 1, x: 0 }}
           className="text-left order-2 lg:order-1"
         >
-          <h2 className="text-xl md:text-2xl font-light mb-4 tracking-[5px] uppercase text-white/60">Hello, I'm</h2>
+          <h2 className="text-xl md:text-2xl font-light mb-4 tracking-[5px] uppercase text-white/60">{"Hello, I'm"}</h2>
           <h1 className="text-5xl md:text-8xl font-black mb-6 tracking-tighter leading-none">
             MD <span style={{ color: theme.color }}>AZHARUL</span>
           </h1>

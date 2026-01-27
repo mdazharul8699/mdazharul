@@ -2,10 +2,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const startDate = new Date('2024-11-26');
+interface Heart {
+  id: number;
+  left: string;
+  duration: number;
+}
 
-// আপনার ৫২ সপ্তাহের সকল মেসেজ এখানে অ্যাড করুন
-const messages = [
+const startDate: Date = new Date('2024-11-26');
+
+const messages: string[] = [
    "সপ্তাহ ১: শুরু হলো আমাদের এক দীর্ঘ বিরহ। প্রতিটা সেকেন্ড যেন এক বছর!",
     "সপ্তাহ ২: তোমার গলার স্বর শোনার জন্য কান পেতে থাকি। চারপাশ খুব চুপচাপ।",
     "সপ্তাহ ৩: আজ তোমার পুরনো মেসেজগুলো পড়লাম। খুব চোখে জল আসছিল।",
@@ -62,137 +67,136 @@ const messages = [
 ];
 
 export default function WaitingJourney() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [liveTime, setLiveTime] = useState("");
-  const [mounted, setMounted] = useState(false);
-  const scrollRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [liveTime, setLiveTime] = useState<string>("");
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [hearts, setHearts] = useState<Heart[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
-    const timer = setInterval(() => {
+    
+    // হার্ট জেনারেশন
+    const generatedHearts: Heart[] = [...Array(20)].map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}vw`,
+      duration: 5 + Math.random() * 5
+    }));
+    setHearts(generatedHearts);
+
+    // উইন্ডো অবজেক্ট ব্যবহার করে টাইপ সেফ করা হয়েছে
+    const timer: ReturnType<typeof setInterval> = setInterval(() => {
       const now = new Date();
       const diff = now.getTime() - startDate.getTime();
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const m = Math.floor((diff / (1000 * 60)) % 60);
       const s = Math.floor((diff / 1000) % 60);
-      setLiveTime(`${d} দিন, ${h} ঘণ্টা ${m} মি. ${s} সে. পূর্ণ হয়েছে...`);
+      setLiveTime(`${d} দিন, ${h} ঘণ্টা ${m} মি. ${s} সে. পূর্ণ হয়েছে...`);
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    const slide = setInterval(() => {
+    if (!mounted) return;
+
+    const slide: ReturnType<typeof setInterval> = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % messages.length);
     }, 5000);
     
     if (scrollRef.current) {
-      const activeItem = scrollRef.current.children[currentIndex];
-      if (activeItem) {
-        activeItem.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-      }
+      // চাইল্ড এলিমেন্টকে HTMLElement হিসেবে কাস্টিং করা হয়েছে
+      const activeItem = scrollRef.current.children[currentIndex] as HTMLElement | undefined;
+      // if (activeItem) {
+      //   activeItem.scrollIntoView({ 
+      //     behavior: "smooth", 
+      //     inline: "center", 
+      //     block: "nearest" 
+      //   });
+      // }
     }
     return () => clearInterval(slide);
-  }, [currentIndex]);
+  }, [currentIndex, mounted]);
 
   if (!mounted) return null;
 
-  const currentMsg = messages[currentIndex] || "";
-  const [weekLabel, content] = currentMsg.includes(": ") ? currentMsg.split(": ") : ["সপ্তাহ", currentMsg];
+  const currentMsg: string = messages[currentIndex] || messages[0];
+  const [weekLabel, content] = currentMsg.includes(": ") 
+    ? currentMsg.split(": ") 
+    : ["সপ্তাহ", currentMsg];
 
   return (
-    <div className="min-h-screen bg-[#0a0c10] text-white flex items-center justify-center p-4 font-sans overflow-hidden">
-      
-      {/* Background Glows (As per your image) */}
+    <div className="min-h-screen bg-[#0a0c10] text-white flex items-center justify-center p-4 font-sans overflow-hidden relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/10 blur-[120px] rounded-full" />
       </div>
 
       <div className="relative z-10 w-full max-w-6xl flex flex-col items-center">
-        
-        {/* Title Bar */}
         <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-white/10 px-8 py-2 rounded-full mb-4 shadow-xl">
           <h1 className="text-xl md:text-3xl font-medium tracking-tight">Our Waiting Journey ❤️</h1>
         </div>
 
-        {/* Live Timer Pill */}
         <div className="bg-[#122c35] border border-cyan-500/30 px-6 py-1 rounded-full mb-12 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
           <p className="text-cyan-400 text-xs md:text-sm font-medium">{liveTime}</p>
         </div>
 
-        {/* Avatar Section */}
         <div className="flex items-center justify-between w-full max-w-4xl mb-12 px-4">
-          {/* Azharul */}
           <div className="flex flex-col items-center">
-            <div className="relative group">
-              <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-[3px] border-cyan-400 p-1 shadow-[0_0_30px_rgba(34,211,238,0.4)]">
-                <div className="w-full h-full rounded-full bg-[#1a1d23] flex items-center justify-center text-5xl md:text-7xl">👨🏻‍💻</div>
-              </div>
-              <div className="absolute -bottom-2 bg-black/80 border border-white/10 px-4 py-0.5 rounded-md text-[10px] text-cyan-400 font-bold uppercase tracking-widest">আজহারুল</div>
+            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-[3px] border-cyan-400 p-1 shadow-[0_0_30px_rgba(34,211,238,0.4)] overflow-hidden">
+              <div className="w-full h-full rounded-full bg-[#1a1d23] flex items-center justify-center text-5xl md:text-7xl">👨🏻‍💻</div>
             </div>
+            <div className="mt-2 bg-black/80 border border-white/10 px-4 py-0.5 rounded-md text-[10px] text-cyan-400 font-bold uppercase">আজহারুল</div>
           </div>
 
-          {/* Center Heart Beat */}
           <div className="relative flex items-center justify-center">
-             <motion.div 
-               animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
-               transition={{ duration: 0.8, repeat: Infinity }}
-               className="text-5xl md:text-8xl filter drop-shadow-[0_0_20px_rgba(234,179,8,0.6)]"
-             >
+             <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }} className="text-5xl md:text-8xl">
                <span className="text-yellow-400">❤️</span>
              </motion.div>
-             {/* Beat Lines */}
-             <div className="absolute w-24 md:w-40 h-1 bg-gradient-to-r from-transparent via-yellow-400/50 to-transparent blur-sm" />
           </div>
 
-          {/* Priyotoma */}
           <div className="flex flex-col items-center">
-            <div className="relative">
-              <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-[3px] border-pink-500 p-1 shadow-[0_0_30px_rgba(236,72,153,0.4)]">
-                <div className="w-full h-full rounded-full bg-[#1a1d23] flex items-center justify-center text-5xl md:text-7xl">👸🏻</div>
-              </div>
-              <div className="absolute -bottom-2 bg-black/80 border border-white/10 px-4 py-0.5 rounded-md text-[10px] text-pink-500 font-bold uppercase tracking-widest">প্রিয়তমা</div>
+            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-[3px] border-pink-500 p-1 shadow-[0_0_30px_rgba(236,72,153,0.4)] overflow-hidden">
+              <div className="w-full h-full rounded-full bg-[#1a1d23] flex items-center justify-center text-5xl md:text-7xl">👸🏻</div>
             </div>
+            <div className="mt-2 bg-black/80 border border-white/10 px-4 py-0.5 rounded-md text-[10px] text-pink-500 font-bold uppercase tracking-widest">প্রিয়তমা</div>
           </div>
         </div>
 
-        {/* Main Message Card (White/Glossy) */}
-        <div className="relative w-full max-w-lg mb-16 px-4">
+        <div className="relative w-full max-w-lg h-80 flex items-center justify-center mb-16 px-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[40px] p-8 md:p-12 text-center shadow-[0_20px_60px_rgba(255,255,255,0.1)] relative overflow-hidden"
+              className="absolute w-full bg-white rounded-[40px] p-8 md:p-12 text-center shadow-[0_20px_60px_rgba(255,255,255,0.1)] overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1.5 bg-yellow-400" />
               <h2 className="text-pink-600 text-xl md:text-3xl font-black mb-4 tracking-tight">{weekLabel}</h2>
               <p className="text-gray-800 text-base md:text-xl font-bold leading-relaxed mb-8 italic">
                 "{content}"
               </p>
-              <button className="bg-[#ff4766] hover:bg-[#ff3355] text-white px-10 py-3 rounded-full font-bold shadow-lg transition-transform active:scale-95">
+              <button className="bg-[#ff4766] text-white px-10 py-3 rounded-full font-bold shadow-lg active:scale-95 transition-transform">
                 ভালোবাসি ❤️
               </button>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Navigation Tray (Scrollbar Hidden) */}
         <div className="w-full relative py-4">
           <div 
             ref={scrollRef}
-            className="flex gap-4 px-[40%] overflow-x-auto no-scrollbar scroll-smooth"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="flex gap-4 px-[45%] overflow-x-auto no-scrollbar scroll-smooth"
+            style={{ scrollbarWidth: 'none' }}
           >
-            <style jsx>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
             {messages.map((_, i) => (
               <div
                 key={i}
                 className={`flex-shrink-0 w-16 h-24 md:w-20 md:h-28 rounded-2xl flex flex-col items-center justify-center border-2 transition-all duration-500
                   ${i === currentIndex 
-                    ? 'bg-gradient-to-b from-pink-500 to-red-600 border-white shadow-[0_0_20px_rgba(236,72,153,0.5)] scale-110 opacity-100' 
+                    ? 'bg-gradient-to-b from-pink-500 to-red-600 border-white scale-110 opacity-100' 
                     : 'bg-[#1a1d23] border-white/5 opacity-20'}`}
               >
                 <span className="text-[10px] font-bold text-white/50 uppercase">Week</span>
@@ -201,23 +205,25 @@ export default function WaitingJourney() {
             ))}
           </div>
         </div>
-
       </div>
 
-      {/* Floating Small Hearts (Responsive) */}
       <div className="absolute inset-0 pointer-events-none">
-        {[...Array(15)].map((_, i) => (
+        {hearts.map((heart) => (
           <motion.div
-            key={i}
-            initial={{ y: "110vh", x: `${(i * 7) % 100}vw`, opacity: 0 }}
+            key={heart.id}
+            initial={{ y: "110vh", x: heart.left, opacity: 0 }}
             animate={{ y: "-10vh", opacity: [0, 1, 1, 0] }}
-            transition={{ duration: 7 + i, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: heart.duration, repeat: Infinity, ease: "linear" }}
             className="absolute text-pink-500/40 text-xl"
           >
             ❤️
           </motion.div>
         ))}
       </div>
+
+      <style jsx>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 }
