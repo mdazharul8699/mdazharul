@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-// ১. গেমের প্রয়োজনীয় টাইপ এবং ইন্টারফেস
+// ১. গেমের প্রয়োজনীয় টাইপ এবং ইন্টারফেস
 interface ActiveWord {
   id: number;
   text: string;
@@ -63,6 +63,19 @@ export default function XTypeUltimate() {
     }
   };
 
+  // গেম স্টেট রিসেট ফাংশন (এটি বারবার ব্যবহার হবে)
+  const resetAllStates = useCallback(() => {
+    setActiveWords([]);
+    setTargetId(null);
+    setScore(0);
+    setWave(1);
+    setWaveKills(0);
+    setBullets([]);
+    setShipRotation(0);
+    setIsPaused(false);
+    setStats({ wpm: 0, acc: 0, startTime: 0, totalKeys: 0, correctKeys: 0 });
+  }, []);
+
   const triggerGameOver = useCallback(() => {
     setGameState("OVER");
     toggleFullScreen(false);
@@ -89,7 +102,6 @@ export default function XTypeUltimate() {
     }]);
   }, [gameState, isPaused, wave, config.difficulty]);
 
-  // গেম লুপ
   useEffect(() => {
     if (gameState !== "PLAYING" || isPaused) return;
     const interval = setInterval(() => {
@@ -106,7 +118,6 @@ export default function XTypeUltimate() {
     return () => { clearInterval(interval); clearInterval(spawnInt); };
   }, [gameState, isPaused, spawnWord, wave, triggerGameOver]);
 
-  // ইনপুট হ্যান্ডলার
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (gameState !== "PLAYING" || isPaused) return;
@@ -171,26 +182,37 @@ export default function XTypeUltimate() {
   }, [gameState, isPaused, targetId]);
 
   const handleStartGame = () => {
-    toggleFullScreen(true);
+    resetAllStates();
     setGameState("PLAYING");
     setStats({ wpm: 0, acc: 0, startTime: Date.now(), totalKeys: 0, correctKeys: 0 });
-    setActiveWords([]);
-    setScore(0);
-    setWave(1);
-    setTargetId(null);
+    toggleFullScreen(true);
+  };
+
+  const handleExitToHome = () => {
+    resetAllStates();
+    setGameState("START");
+    toggleFullScreen(false);
   };
 
   return (
     <div ref={gameRef} className="relative w-full h-screen overflow-hidden bg-[#050510] text-white font-sans selection:bg-none">
       
+      {/* ১. হোম স্ক্রিন / ইন্ট্রোডাকশন */}
       {gameState === "START" && (
         <div className="absolute inset-0 z-[2000] bg-[#050514] flex flex-col items-center justify-center">
-          <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-8xl md:text-9xl font-black text-[#00d2ff] tracking-[15px] italic drop-shadow-[0_0_20px_#00d2ff] mb-4">X-TYPE</motion.h1>
-          <p className="text-gray-500 tracking-[8px] mb-12 font-bold uppercase text-sm">Ultimate Typing Interface</p>
-          <button onClick={handleStartGame} className="game-btn">Play Game</button>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }} 
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center"
+          >
+            <h1 className="text-8xl md:text-9xl font-black text-[#00d2ff] tracking-[15px] italic drop-shadow-[0_0_20px_#00d2ff] mb-4">X-TYPE</h1>
+            <p className="text-gray-500 tracking-[8px] mb-12 font-bold uppercase text-sm">Ultimate Typing Interface</p>
+            <button onClick={handleStartGame} className="game-btn">Initialise Mission</button>
+          </motion.div>
         </div>
       )}
 
+      {/* ২. মেইন গেম এরিয়া */}
       <div className="absolute inset-0" style={{ background: getBgStyle(config.theme) }}>
         {gameState === "PLAYING" && (
           <>
@@ -198,12 +220,21 @@ export default function XTypeUltimate() {
               <div className="text-[#00d2ff] text-2xl font-black tracking-widest">
                 WAVE: <span className="text-white">{wave}</span> | SCORE: <span className="text-white">{score}</span>
               </div>
-              <button onClick={() => setIsPaused(!isPaused)} className="px-6 py-2 border-2 border-yellow-500 text-yellow-500 font-bold uppercase tracking-tighter hover:bg-yellow-500 hover:text-black transition-colors">
-                {isPaused ? "Resume" : "Pause"}
-              </button>
+              <div className="flex gap-4">
+                <button onClick={() => setIsPaused(!isPaused)} className="px-6 py-2 border-2 border-yellow-500 text-yellow-500 font-bold uppercase tracking-tighter hover:bg-yellow-500 hover:text-black transition-colors">
+                  {isPaused ? "Resume" : "Pause"}
+                </button>
+                <button onClick={handleExitToHome} className="px-6 py-2 border-2 border-red-600 text-red-600 font-bold uppercase tracking-tighter hover:bg-red-600 hover:text-white transition-colors">
+                  Exit
+                </button>
+              </div>
             </div>
 
-            {isPaused && <div className="absolute inset-0 bg-black/80 flex items-center justify-center text-6xl font-black text-[#00d2ff] z-[150] tracking-widest uppercase italic">Paused</div>}
+            {isPaused && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center text-6xl font-black text-[#00d2ff] z-[150] tracking-widest uppercase italic backdrop-blur-sm">
+                Paused
+              </div>
+            )}
 
             {activeWords.map((word) => (
               <div key={word.id} className="absolute -translate-x-1/2" style={{ left: `${word.x}px`, top: `${word.y}px` }}>
@@ -229,8 +260,9 @@ export default function XTypeUltimate() {
         )}
       </div>
 
+      {/* ৩. গেম ওভার স্ক্রিন */}
       {gameState === "OVER" && (
-        <div className="absolute inset-0 z-[3000] bg-black/95 flex items-center justify-center">
+        <div className="absolute inset-0 z-[3000] bg-black/95 flex items-center justify-center backdrop-blur-md">
           <div className="bg-[#111] border-4 border-[#ff0055] p-12 rounded-[2rem] text-center shadow-[0_0_60px_#ff005566]">
             <h2 className="text-[#ff0055] text-6xl font-black mb-8 italic uppercase tracking-tighter">Terminated</h2>
             <div className="grid grid-cols-2 gap-4 mb-10">
@@ -243,14 +275,17 @@ export default function XTypeUltimate() {
                 <p className="text-4xl font-black text-[#00d2ff]">{stats.acc}%</p>
               </div>
             </div>
-            <button onClick={handleStartGame} className="w-full py-5 bg-[#00d2ff] text-black font-black rounded-2xl text-2xl uppercase italic hover:bg-white transition-all">Re-Deploy</button>
+            <div className="flex flex-col gap-4">
+                <button onClick={handleStartGame} className="w-full py-5 bg-[#00d2ff] text-black font-black rounded-2xl text-2xl uppercase italic hover:bg-white transition-all shadow-[0_0_20px_#00d2ff]">Re-Deploy</button>
+                <button onClick={handleExitToHome} className="w-full py-4 bg-transparent border-2 border-white/20 text-white font-bold rounded-xl uppercase hover:bg-white/10 transition-all">Main Menu</button>
+            </div>
           </div>
         </div>
       )}
 
       <style jsx>{`
-        .game-btn { width: 300px; padding: 18px; border: 3px solid #00d2ff; background: transparent; color: white; font-weight: 900; text-transform: uppercase; font-style: italic; letter-spacing: 3px; transition: all 0.3s; cursor: pointer; }
-        .game-btn:hover { background: #00d2ff; color: black; box-shadow: 0 0 30px #00d2ff; transform: scale(1.05) skewX(-5deg); }
+        .game-btn { width: 350px; padding: 20px; border: 3px solid #00d2ff; background: transparent; color: white; font-weight: 900; text-transform: uppercase; font-style: italic; letter-spacing: 3px; transition: all 0.3s; cursor: pointer; }
+        .game-btn:hover { background: #00d2ff; color: black; box-shadow: 0 0 40px #00d2ff; transform: scale(1.05) skewX(-5deg); }
       `}</style>
     </div>
   );
