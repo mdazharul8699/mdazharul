@@ -7,6 +7,8 @@ import GameHub from "@/components/GameHub";
 import Projects from "@/components/Projects";
 import Contact from "@/components/Contact";
 import AiChatbot from "@/components/AiChatbot";
+import Pricing from "@/components/Pricing";
+import BlogSection from "@/components/BlogSection";
 // ... অন্যান্য ইমপোর্টগুলো আগের মতোই থাকবে
 
 // বস্, এই পার্টটুকুই আপনার সাইটের SEO কন্ট্রোল করবে
@@ -61,6 +63,8 @@ export default function Home() {
       <About />
       <Education />
       <GameHub />
+      <Pricing />
+     <BlogSection /> 
       <Projects />
       <Contact />
       <AiChatbot />
