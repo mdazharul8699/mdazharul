@@ -85,7 +85,7 @@ export default function Contact() {
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} className="text-center mb-16 md:mb-32">
             <h2 className="text-5xl md:text-[10rem] font-black tracking-tighter uppercase leading-none select-none">
               Get In <br className="md:hidden" />
-              <span className="italic" style={{ color: 'transparent', WebkitTextStroke: `1px md:2px ${theme.color}`, textShadow: `0 0 40px ${theme.color}44` }}>Touch</span>
+              <span className="italic" style={{ color: 'transparent', zIndex: 10, WebkitTextStroke: `1px md:2px ${theme.color}`, textShadow: `0 0 40px ${theme.color}44` }}>Touch</span>
             </h2>
           </motion.div>
 

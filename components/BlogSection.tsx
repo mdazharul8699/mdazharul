@@ -58,7 +58,7 @@ export default function BlogSection() {
               whileInView={{ opacity: 1, x: 0 }}
               className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-none"
             >
-              TECH <span className="opacity-20 block md:inline">JOURNAL</span>
+              TECH <span className="opacity-50 block md:inline">JOURNAL</span>
             </motion.h2>
             <p className="text-gray-500 mt-4 font-mono text-sm tracking-widest uppercase">
               {" Systematic sharing of knowledge and innovation"}

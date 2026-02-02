@@ -60,7 +60,7 @@ export default function Pricing() {
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-24">
-          <h2 className="text-7xl md:text-[10rem] font-black tracking-tighter text-white uppercase opacity-10">
+          <h2 className="text-7xl md:text-[10rem] font-black tracking-tighter text-white uppercase opacity-50 select-none">
             Pricing
           </h2>
         </div>
