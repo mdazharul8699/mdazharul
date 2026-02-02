@@ -8,11 +8,11 @@ const themes = [
     color: '#FACC15', 
     glow: 'shadow-[0_0_20px_rgba(250,204,21,0.5)]' 
   },
-  { 
-    name: 'pink', 
-    color: '#FF007F', // Premium Neon Pink
-    glow: 'shadow-[0_0_20px_rgba(255,0,127,0.5)]' 
-  },
+  // { 
+  //   name: 'pink', 
+  //   color: '#FF007F', // Premium Neon Pink
+  //   glow: 'shadow-[0_0_20px_rgba(255,0,127,0.5)]' 
+  // },
   { 
     name: 'purple', 
     color: '#A855F7', 
