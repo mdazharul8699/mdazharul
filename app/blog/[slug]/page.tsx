@@ -129,7 +129,7 @@ export default function BlogDetails() {
             {/* Conclusion Box */}
             <div className="p-8 md:p-12 rounded-[32px] bg-white/[0.02] border border-white/5 mt-16">
               <p className="text-lg md:text-xl text-gray-300 italic font-serif leading-relaxed">
-                "{post.conclusion}"
+                {post.conclusion}
               </p>
             </div>
           </div>
