@@ -170,7 +170,7 @@ export default function Education() {
               
               <div className="relative z-10 w-full h-full rounded-[4rem] overflow-hidden border border-white/20 shadow-2xl">
                 <Image 
-                  src="/azharuleducation.jpg" 
+                  src="/azharuleduction.png" 
                   alt="MD Azharul Honours BL College"
                   fill
                   className="object-cover object-top brightness-90 hover:brightness-110 transition-all duration-700"

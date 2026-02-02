@@ -64,7 +64,7 @@ export default function BlogSection() {
               {" Systematic sharing of knowledge and innovation"}
             </p>
           </div>
-          <Link href="/blog">
+          <Link href="/blogs">
             <motion.span 
               whileHover={{ scale: 1.05 }}
               className="px-8 py-3 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all cursor-pointer"

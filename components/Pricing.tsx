@@ -122,11 +122,11 @@ export default function Pricing() {
                 </ul>
 
                 {/* এখানে লিঙ্কটি আপনার ডাইনামিক অর্ডার পেজের সাথে কানেক্ট করা হলো */}
-                <Link href={`/order/${plan.id}`} className="w-full mt-auto cursor-pointer">
+                <Link href={`/order/${plan.id}`} className="w-full mt-auto ">
                   <motion.button
                     whileHover={{ scale: 1.05, boxShadow: `0 0 40px ${theme.color}40` }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.4em] transition-all border border-white/10"
+                    className="w-full py-5 rounded-2xl font-black cursor-pointer text-[11px] uppercase tracking-[0.4em] transition-all border border-white/10"
                     style={{ 
                       backgroundColor: plan.popular ? theme.color : "transparent",
                       color: plan.popular ? "#000" : "#fff"
