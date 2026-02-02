@@ -96,9 +96,47 @@ export default function About() {
               <span style={{ color: theme.color }} className="relative">Code</span>
             </h2>
             
-            <p className="text-gray-400 text-xl leading-relaxed mb-10 font-light italic border-l-2 pl-6 border-white/10">
-              "I am <span className="text-white font-bold not-italic">MD AZHARUL</span>, a developer who sees the terminal as a canvas and code as the paint. Every project is a step toward perfection."
-            </p>
+          <motion.div 
+  initial={{ opacity: 0, x: -20 }}
+  whileInView={{ opacity: 1, x: 0 }}
+  transition={{ duration: 0.8 }}
+  className="relative group"
+>
+  {/* বাম পাশের এনিমেটেড বর্ডার */}
+  <div 
+    className="absolute left-0 top-0 w-[3px] h-full" 
+    style={{ 
+      background: `linear-gradient(to bottom, transparent, ${theme.color}, transparent)`,
+      boxShadow: `0 0 15px ${theme.color}`
+    }}
+  />
+
+  <p className="text-gray-400 text-lg md:text-2xl leading-relaxed mb-10 font-light italic pl-8 relative">
+    {/* ডেকোরেটিভ কোটেশন মার্ক */}
+    <span 
+      className="absolute -top-6 left-0 text-6xl opacity-10 font-serif select-none pointer-events-none"
+      style={{ color: theme.color }}
+    >
+      &ldquo;
+    </span>
+
+    {"I am "} 
+    <span className="text-white font-bold not-italic">MD AZHARUL</span>
+    {", a developer who sees the "}
+    <span className="text-white font-medium">terminal as a canvas</span>
+    {" and "}
+    <span className="text-white font-medium">code as the paint</span>
+    {". Every project is a step toward "}
+    <span style={{ color: theme.color }} className="font-semibold px-1">perfection</span>
+    {", where I blend logic with aesthetics to build "}
+    <span className="text-gray-200">digital ecosystems</span>
+    {". I don't just write scripts; I architect "}
+    <span className="relative inline-block text-white font-medium px-1 underline decoration-white/20">
+      experiences
+    </span> 
+    {" that are scalable, intuitive, and future-proof."}
+  </p>
+</motion.div>
 
             {/* রেজাল্ট সেকশন - সুন্দর ডার্ক কার্ড */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">

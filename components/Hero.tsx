@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { useEffect, useState } from "react";
 import SpiderBackground from "./SpiderBackground";
+import Link from "next/link";
 
 export default function Hero() {
   const theme = useTheme();
@@ -40,16 +41,39 @@ export default function Hero() {
           animate={{ opacity: 1, x: 0 }}
           className="text-left order-2 lg:order-1"
         >
-          <h2 className="text-xl md:text-2xl font-light mb-4 tracking-[5px] uppercase text-white/60">{"Hello, I'm"}</h2>
+ <h2 className="text-xl md:text-2xl font-bold mb-4 tracking-[5px] uppercase">
+  <span className="text-white">{"Hello,"}</span>{" "}
+  <span style={{ color: theme.color }}>{`I'm`}</span>
+</h2>
           <h1 className="text-5xl md:text-8xl font-black mb-6 tracking-tighter leading-none">
             MD <span style={{ color: theme.color }}>AZHARUL</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-400 font-mono mb-10 max-w-lg leading-relaxed">
-            A Web Developer specialized in <span className="text-white">Next.js</span> & <span className="text-white">Full-Stack Solutions</span>.
-          </p>
+ <p className="text-lg md:text-xl text-gray-400 font-mono mb-10 max-w-3xl leading-relaxed">
+  <span className="text-white font-bold" style={{ borderBottom: `2px solid ${theme.color}` }}>
+    Next.js Evangelist
+  </span> 
+  <span className="mx-1">&</span> 
+  <span className="text-white font-bold">Full-Stack Architect</span> 
+  <span className="mx-2" style={{ color: theme.color }}>|</span> 
+  
+  Specialized in crafting 
+  <span className="text-white font-medium"> high-performance</span>, 
+  <span style={{ color: theme.color }} className="font-semibold px-1 underline decoration-white/20">
+    SEO-optimized
+  </span> 
+  web solutions that turn 
+  <span className="italic text-gray-300 px-1">complex ideas</span> 
+  into 
+  <span className="text-white"> seamless</span>, 
+  <span className="font-black tracking-tighter uppercase ml-1" style={{ color: theme.color }}>
+    fast-loading 
+  </span> 
+  <span> user experiences.</span>
+   
+</p>
           <div className="flex flex-wrap gap-4">
-            <button style={{ backgroundColor: theme.color }} className="px-8 py-4 text-black font-bold rounded-xl hover:scale-105 transition-all shadow-lg active:scale-95">My Projects</button>
-            <button className="px-8 py-4 border border-white/10 text-white font-bold rounded-xl hover:bg-white/5 transition-all">Contact Me</button>
+            <button style={{ backgroundColor: theme.color }} className="px-8 py-4 text-black font-bold rounded-xl hover:scale-105 transition-all shadow-lg active:scale-95"><Link href="/project">My Projects</Link></button>
+            <button className="px-8 py-4 border border-white/10 text-white font-bold rounded-xl hover:bg-white/5 transition-all"><Link href="/contact">Contact Me</Link></button>
           </div>
         </motion.div>
 
