@@ -3,8 +3,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { FiMail, FiPhone, FiMapPin, FiSend } from "react-icons/fi";
 import { useEffect, useState, useRef } from "react";
+import emailjs from "@emailjs/browser"; // ইমেইল সার্ভিস ইম্পোর্ট
 
-// ১. স্টার ফিল্ড অ্যানিমেশন
+// ১. স্টার ফিল্ড অ্যানিমেশন (আপনার অরিজিনাল কোড)
 const SupernovaField = ({ themeColor }: { themeColor: string }) => {
   const [stars, setStars] = useState<{ x: number; y: number; size: number; duration: number; delay: number }[]>([]);
   useEffect(() => {
@@ -28,23 +29,49 @@ const SupernovaField = ({ themeColor }: { themeColor: string }) => {
 export default function Contact() {
   const theme = useTheme();
   const sectionRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null); // ফর্ম রেফারেন্স
+  const [isSending, setIsSending] = useState(false);
+
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
   
-  // প্যারালাক্স মুভমেন্ট - ফোনের জন্য একটু কম এবং পিসির জন্য বেশি (Responsive Transform)
   const yLeft = useTransform(scrollYProgress, [0, 1], [-100, 100]);
   const yRight = useTransform(scrollYProgress, [0, 1], [100, -100]);
+
+  // ইমেইল পাঠানোর ফাংশন
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formRef.current) return;
+
+    setIsSending(true);
+
+    // নিচের 'YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', 'YOUR_PUBLIC_KEY' পরিবর্তন করবেন
+    emailjs.sendForm(
+      'service_xxxxxxx', 
+      'template_xxxxxxx', 
+      formRef.current, 
+      'your_public_key'
+    )
+    .then(() => {
+      alert("বার্তাটি সফলভাবে পাঠানো হয়েছে! বস্ শীঘ্রই যোগাযোগ করবে।");
+      formRef.current?.reset();
+    })
+    .catch((error) => {
+      console.error(error);
+      alert("দুঃখিত, কোনো সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+    })
+    .finally(() => setIsSending(false));
+  };
 
   return (
     <section ref={sectionRef} id="contact" className="py-20 md:py-32 relative overflow-hidden text-white bg-[#020202] min-h-screen flex items-center">
       <SupernovaField themeColor={theme.color} />
 
-      {/* ২. উপরে-বামের উজ্জ্বল চাঁদ (Responsive) */}
+      {/* ২. উপরে-বামের উজ্জ্বল চাঁদ */}
       <motion.div style={{ y: yLeft }} className="absolute top-[-10%] left-[-15%] md:top-[-15%] md:left-[-10%] z-0 pointer-events-none opacity-50 md:opacity-70">
         <div className="relative flex items-center justify-center">
           <div className="w-[250px] h-[250px] md:w-[700px] md:h-[700px] rounded-full blur-[60px] md:blur-[100px]" 
             style={{ background: `radial-gradient(circle, ${theme.color} 40%, transparent 80%)` }} 
           />
-          {/* রশ্মিগুলো পিসিতে বেশি, ফোনে কম */}
           {[...Array(12)].map((_, i) => (
             <motion.div key={i} animate={{ opacity: [0.1, 0.4, 0.1], scaleY: [1, 1.2, 1] }} transition={{ duration: 5 + i, repeat: Infinity }}
               className={`absolute top-1/2 left-1/2 origin-top blur-[4px] ${i > 7 ? 'hidden md:block' : 'block'}`}
@@ -59,7 +86,7 @@ export default function Contact() {
         </div>
       </motion.div>
 
-      {/* ৩. নিচে-ডানের উজ্জ্বল চাঁদ (Responsive) */}
+      {/* ৩. নিচে-ডানের উজ্জ্বল চাঁদ */}
       <motion.div style={{ y: yRight }} className="absolute bottom-[-10%] right-[-15%] md:bottom-[-15%] md:right-[-10%] z-0 pointer-events-none">
         <div className="relative flex items-center justify-center">
           <div className="w-[300px] h-[300px] md:w-[800px] md:h-[800px] rounded-full blur-[80px] md:blur-[120px]" 
@@ -91,7 +118,6 @@ export default function Contact() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-center">
             
-            {/* কন্টাক্ট কার্ডস - ফোনে সুন্দরভাবে একটার নিচে আরেকটা আসবে */}
             <div className="space-y-4 md:space-y-8 order-2 lg:order-1">
               {[
                 { icon: <FiMail />, label: "Email", val: "freelancermdazharul@gmail.com" },
@@ -114,19 +140,21 @@ export default function Contact() {
               ))}
             </div>
 
-            {/* কন্টাক্ট ফর্ম - ফোনে প্রিমিয়াম গ্লাস লুক */}
+            {/* কন্টাক্ট ফর্ম */}
             <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
               className="p-8 md:p-16 rounded-[2.5rem] md:rounded-[4rem] bg-black/40 border border-white/10 backdrop-blur-2xl shadow-2xl relative order-1 lg:order-2"
             >
-              <form className="relative z-10 space-y-6 md:space-y-10">
-                <input type="text" placeholder="NAME" className="w-full bg-transparent border-b border-white/10 py-3 md:py-4 focus:outline-none focus:border-white transition-all text-xs md:text-sm tracking-widest" />
-                <input type="email" placeholder="EMAIL" className="w-full bg-transparent border-b border-white/10 py-3 md:py-4 focus:outline-none focus:border-white transition-all text-xs md:text-sm tracking-widest" />
-                <textarea rows={3} placeholder="MESSAGE" className="w-full bg-transparent border-b border-white/20 py-3 md:py-4 focus:outline-none focus:border-white transition-all text-xs md:text-sm tracking-widest resize-none" />
-                <motion.button whileHover={{ scale: 1.02, boxShadow: `0 0 50px ${theme.color}55` }} whileTap={{ scale: 0.98 }}
+              <form ref={formRef} onSubmit={handleSubmit} className="relative z-10 space-y-6 md:space-y-10">
+                <input required name="from_name" type="text" placeholder="NAME" className="w-full bg-transparent border-b border-white/10 py-3 md:py-4 focus:outline-none focus:border-white transition-all text-xs md:text-sm tracking-widest" />
+                <input required name="reply_to" type="email" placeholder="EMAIL" className="w-full bg-transparent border-b border-white/10 py-3 md:py-4 focus:outline-none focus:border-white transition-all text-xs md:text-sm tracking-widest" />
+                <textarea required name="message" rows={3} placeholder="MESSAGE" className="w-full bg-transparent border-b border-white/20 py-3 md:py-4 focus:outline-none focus:border-white transition-all text-xs md:text-sm tracking-widest resize-none" />
+                <motion.button 
+                  disabled={isSending}
+                  whileHover={{ scale: 1.02, boxShadow: `0 0 50px ${theme.color}55` }} whileTap={{ scale: 0.98 }}
                   className="w-full py-5 md:py-7 rounded-xl md:rounded-2xl font-black text-black uppercase tracking-[0.3em] md:tracking-[0.5em] flex items-center justify-center gap-4 transition-all"
-                  style={{ backgroundColor: theme.color }}
+                  style={{ backgroundColor: theme.color, opacity: isSending ? 0.6 : 1 }}
                 >
-                  Invoke Power <FiSend />
+                  {isSending ? "Sending Power..." : "Invoke Power"} <FiSend />
                 </motion.button>
               </form>
             </motion.div>

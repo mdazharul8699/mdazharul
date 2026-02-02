@@ -67,12 +67,15 @@ export default function Header() {
 
         {/* Right Action (Optional) */}
         <div className="flex items-center gap-4">
-          <button 
-            style={{ borderColor: theme.color, color: theme.color }}
-            className="hidden md:block px-6 py-2 border rounded-full text-xs font-bold hover:bg-white hover:text-black transition-all"
-          >
-            RESUME
-          </button>
+         <a 
+  href="https://drive.google.com/file/d/19QI4Wta6EwI9vErFprLu7jqUbkZbY5_q/view?usp=drive_link" 
+  target="_blank" 
+  rel="noopener noreferrer"
+  style={{ borderColor: theme.color, color: theme.color }}
+  className="hidden md:block px-6 py-2 border rounded-full text-xs font-bold hover:bg-white hover:text-black transition-all"
+>
+  RESUME
+</a>
           
           {/* Mobile Menu Icon (Simplified) */}
           <div className="md:hidden w-6 h-6 flex flex-col justify-between items-end cursor-pointer">
