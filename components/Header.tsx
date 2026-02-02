@@ -39,7 +39,13 @@ export default function Header() {
           whileHover={{ scale: 1.1 }}
           className="text-2xl font-black tracking-tighter cursor-pointer"
         >
-          A<span style={{ color: theme.color }}>Z</span>.
+          <img 
+            src="/azharul_logo.png" 
+            alt="Logo" 
+            width={40} 
+            height={40} 
+            className="object-contain"
+          />
         </motion.div>
 
         {/* Desktop Menu */}
