@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <AdminNavLink label="Overview" href="/admin" active />
           <AdminNavLink label="Inbound Messages" href="/admin/messages" />
           <AdminNavLink label="Manage Reviews" href="/admin/reviews" />
-          <AdminNavLink label="System Logs" href="#" />
+          <AdminNavLink label="System Logs" href="/admin/logs" />
         </nav>
       </aside>
 
