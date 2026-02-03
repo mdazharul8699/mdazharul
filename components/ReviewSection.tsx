@@ -45,7 +45,7 @@ const firstRow = (reviews && Array.isArray(reviews))
           </p>
         </div>
         
-        <Link href="/all-reviews" className="group px-8 py-4 bg-cyan-500 text-black font-black text-sm uppercase tracking-widest rounded-full hover:bg-white transition-all flex items-center gap-2 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+        <Link href="/review" className="group px-8 py-4 bg-cyan-500 text-black font-black text-sm uppercase tracking-widest rounded-full hover:bg-white transition-all flex items-center gap-2 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
           VIEW ALL <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
