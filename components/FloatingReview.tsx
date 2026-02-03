@@ -3,14 +3,19 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { FiStar } from "react-icons/fi";
 import { useTheme } from "@/context/ThemeContext";
+import { useSession } from "next-auth/react"; // সেশন ইম্পোর্ট করা হলো
 
 export default function FloatingReview() {
   const theme = useTheme();
+  const { data: session } = useSession(); // ইউজারের লগইন স্ট্যাটাস চেক করবে
+
+  // লগইন থাকলে ড্যাশবোর্ড, না থাকলে লগইন পেজ
+  const targetPath = session ? "/dashboard" : "/login";
 
   return (
     // চ্যাটবট সাধারণত bottom-8 এ থাকে, তাই আমরা এটাকে bottom-28 (একটু উপরে) দিচ্ছি
     <div className="fixed bottom-28 right-6 z-[99]">
-      <Link href="/login">
+      <Link href={targetPath}>
         <motion.div
           initial={{ x: 100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
