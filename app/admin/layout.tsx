@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white flex flex-col md:flex-row">
+    <div className="min-h-screen mt-40 bg-[#020202] text-white flex flex-col md:flex-row">
       {/* Sidebar - ড্যাশবোর্ড মেনু */}
       <aside className="w-full md:w-64 border-r border-white/5 p-6 space-y-8 backdrop-blur-xl bg-black/50">
         <div className="text-2xl font-black italic tracking-tighter uppercase">
