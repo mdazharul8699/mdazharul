@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 export default function Header() {
   const theme = useTheme();
@@ -67,16 +68,43 @@ export default function Header() {
 
         {/* Right Action (Optional) */}
         <div className="flex items-center gap-4">
-         <a 
-  href="https://drive.google.com/file/d/19QI4Wta6EwI9vErFprLu7jqUbkZbY5_q/view?usp=drive_link" 
-  target="_blank" 
-  rel="noopener noreferrer"
-  style={{ borderColor: theme.color, color: theme.color }}
-  className="hidden md:block px-6 py-2 border rounded-full text-xs font-bold hover:bg-white hover:text-black transition-all"
->
-  RESUME
-</a>
-          
+ <Link href="/login" style={{cursor:'pointer'}}>
+  <motion.button
+    /* নজর কাড়ার জন্য পালস অ্যানিমেশন */
+    animate={{ 
+      boxShadow: [
+        `0 0 0px ${theme.color}00`, 
+        `0 0 20px ${theme.color}66`, 
+        `0 0 0px ${theme.color}00`
+      ],
+      scale: [1, 1.05, 1]
+    }}
+    transition={{ 
+      duration: 2, 
+      repeat: Infinity, 
+      ease: "easeInOut" 
+    }}
+    whileHover={{ 
+      scale: 1.1, 
+      backgroundColor: theme.color, 
+      color: "#000" 
+    }}
+    whileTap={{ scale: 0.95 }}
+    style={{ borderColor: theme.color, color: theme.color }}
+    className="hidden md:flex items-center gap-2 px-6 py-2 border rounded-full cursor-pointer text-[10px] font-black tracking-[0.2em] uppercase transition-all bg-transparent relative overflow-hidden group"
+  >
+    {/* ভেতরের গ্লোয়িং ডট */}
+    <span className="relative flex h-2 w-2">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: theme.color }}></span>
+      <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: theme.color }}></span>
+    </span>
+
+    <span className="relative z-10">Give Review</span>
+
+    {/* হোভার করলে শাইন ইফেক্ট */}
+    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+  </motion.button>
+</Link> 
           {/* Mobile Menu Icon (Simplified) */}
           <div className="md:hidden w-6 h-6 flex flex-col justify-between items-end cursor-pointer">
             <span style={{ backgroundColor: theme.color }} className="w-full h-[2px]" />

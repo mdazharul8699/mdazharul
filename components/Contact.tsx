@@ -3,9 +3,8 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { FiMail, FiPhone, FiMapPin, FiSend } from "react-icons/fi";
 import { useEffect, useState, useRef } from "react";
-import emailjs from "@emailjs/browser"; // ইমেইল সার্ভিস ইম্পোর্ট
 
-// ১. স্টার ফিল্ড অ্যানিমেশন (আপনার অরিজিনাল কোড)
+// ১. স্টার ফিল্ড অ্যানিমেশন
 const SupernovaField = ({ themeColor }: { themeColor: string }) => {
   const [stars, setStars] = useState<{ x: number; y: number; size: number; duration: number; delay: number }[]>([]);
   useEffect(() => {
@@ -29,7 +28,7 @@ const SupernovaField = ({ themeColor }: { themeColor: string }) => {
 export default function Contact() {
   const theme = useTheme();
   const sectionRef = useRef(null);
-  const formRef = useRef<HTMLFormElement>(null); // ফর্ম রেফারেন্স
+  const formRef = useRef<HTMLFormElement>(null);
   const [isSending, setIsSending] = useState(false);
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
@@ -37,36 +36,51 @@ export default function Contact() {
   const yLeft = useTransform(scrollYProgress, [0, 1], [-100, 100]);
   const yRight = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-  // ইমেইল পাঠানোর ফাংশন
-  const handleSubmit = (e: React.FormEvent) => {
+  // শুধুমাত্র MongoDB ডাটাবেজে ডাটা পাঠানোর ফাংশন
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formRef.current) return;
 
     setIsSending(true);
 
-    // নিচের 'YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', 'YOUR_PUBLIC_KEY' পরিবর্তন করবেন
-    emailjs.sendForm(
-      'service_xxxxxxx', 
-      'template_xxxxxxx', 
-      formRef.current, 
-      'your_public_key'
-    )
-    .then(() => {
-      alert("বার্তাটি সফলভাবে পাঠানো হয়েছে! বস্ শীঘ্রই যোগাযোগ করবে।");
-      formRef.current?.reset();
-    })
-    .catch((error) => {
-      console.error(error);
-      alert("দুঃখিত, কোনো সমস্যা হয়েছে। আবার চেষ্টা করুন।");
-    })
-    .finally(() => setIsSending(false));
+    const formData = new FormData(formRef.current);
+    const payload = {
+      name: formData.get("from_name"),
+      email: formData.get("reply_to"),
+      subject: "New Message from Portfolio",
+      message: formData.get("message"),
+    };
+
+    try {
+      // API এর মাধ্যমে MongoDB-তে ডাটা পাঠানো
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("বিজয়! আপনার বার্তাটি সরাসরি ডাটাবেজে সেভ হয়েছে।");
+        formRef.current.reset();
+      } else {
+        alert("দুঃখিত, ডাটাবেজে সেভ হতে সমস্যা হয়েছে: " + data.error);
+      }
+
+    } catch (error) {
+      console.error("Database Submission Error:", error);
+      alert("সার্ভারের সাথে সংযোগ বিচ্ছিন্ন! আবার চেষ্টা করুন।");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
     <section ref={sectionRef} id="contact" className="py-20 md:py-32 relative overflow-hidden text-white bg-[#020202] min-h-screen flex items-center">
       <SupernovaField themeColor={theme.color} />
 
-      {/* ২. উপরে-বামের উজ্জ্বল চাঁদ */}
+      {/* উপরে-বামের উজ্জ্বল চাঁদ */}
       <motion.div style={{ y: yLeft }} className="absolute top-[-10%] left-[-15%] md:top-[-15%] md:left-[-10%] z-0 pointer-events-none opacity-50 md:opacity-70">
         <div className="relative flex items-center justify-center">
           <div className="w-[250px] h-[250px] md:w-[700px] md:h-[700px] rounded-full blur-[60px] md:blur-[100px]" 
@@ -86,7 +100,7 @@ export default function Contact() {
         </div>
       </motion.div>
 
-      {/* ৩. নিচে-ডানের উজ্জ্বল চাঁদ */}
+      {/* নিচে-ডানের উজ্জ্বল চাঁদ */}
       <motion.div style={{ y: yRight }} className="absolute bottom-[-10%] right-[-15%] md:bottom-[-15%] md:right-[-10%] z-0 pointer-events-none">
         <div className="relative flex items-center justify-center">
           <div className="w-[300px] h-[300px] md:w-[800px] md:h-[800px] rounded-full blur-[80px] md:blur-[120px]" 
@@ -154,7 +168,7 @@ export default function Contact() {
                   className="w-full py-5 md:py-7 rounded-xl md:rounded-2xl font-black text-black uppercase tracking-[0.3em] md:tracking-[0.5em] flex items-center justify-center gap-4 transition-all"
                   style={{ backgroundColor: theme.color, opacity: isSending ? 0.6 : 1 }}
                 >
-                  {isSending ? "Sending Power..." : "Invoke Power"} <FiSend />
+                  {isSending ? "Dispatching..." : "Invoke Power"} <FiSend />
                 </motion.button>
               </form>
             </motion.div>

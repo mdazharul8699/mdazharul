@@ -17,6 +17,23 @@ export default function Hero() {
   status: "Building the future"
 };`;
 
+
+useEffect(() => {
+    // পেজ রিলোড হলে এই ফাংশনটি রান হবে
+    const checkDB = async () => {
+      try {
+        const res = await fetch("/api/test-db");
+        const data = await res.json();
+        console.log("DB Status from Client:", data.message);
+      } catch (err) {
+        console.log("DB Check Failed");
+      }
+    };
+
+    checkDB();
+  }, []);
+
+
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {
