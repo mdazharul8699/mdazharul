@@ -4,7 +4,6 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/mongodb-client";
 
 const handler = NextAuth({
-  // ১. মঙ্গোডিবি অ্যাডাপ্টার সেটআপ
   adapter: MongoDBAdapter(clientPromise),
   
   providers: [
@@ -14,36 +13,41 @@ const handler = NextAuth({
     }),
   ],
 
-  // ২. সেশন কনফিগারেশন (JWT ব্যবহার করা লোকালহোস্টের জন্য সবচেয়ে নিরাপদ)
   session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // ৩০ দিন পর্যন্ত লগইন থাকবে
+    strategy: "jwt", // JWT ব্যবহার করলে কলব্যাকে ডেটা পাস করতে হয়
+    maxAge: 30 * 24 * 60 * 60,
   },
 
-  // ৩. সিক্রেট এবং ডিবাগ মোড
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
 
-  // ৪. কলব্যাকস (ইউজারের আইডি সেশনে পাঠানোর জন্য)
   callbacks: {
-    async jwt({ token, user }) {
+    // ১. JWT কলব্যাকে ইউজারের সব ডেটা টোকেনে সেভ করা
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.picture = user.image; // গুগল থেকে আসা ছবি এখানে থাকে
       }
       return token;
     },
+
+    // ২. টোকেন থেকে ডেটা নিয়ে সেশনে পাঠানো
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.image = token.picture as string; // এখন ছবি সেশনে যাবে
       }
       return session;
     },
   },
 
-  // ৫. পেজ রিডাইরেক্ট (লগইন ফেল করলে কোথায় যাবে)
   pages: {
     signIn: "/login",
-    error: "/login", // যেকোনো এরর হলে লগইন পেজেই ফেরত পাঠাবে
+    error: "/login",
   },
 });
 
